@@ -8,7 +8,7 @@ clock = pygame.time.Clock()  # Create clock object
 
 
 class SpaceShip(pygame.sprite.Sprite):
-    def __init__(self, path, x_pos, y_pos, speed):
+    def __init__(self, path, x_pos, y_pos):
         super(SpaceShip, self).__init__()
         self.image = pygame.image.load(path)  # Creates surface
         self.rect = self.image.get_rect(center=(x_pos, y_pos))  # Creates rectangle
@@ -41,13 +41,25 @@ class Meteor(pygame.sprite.Sprite):
     def update(self):  # continuous movement of meteor
         self.rect.centerx += self.x_speed
         self.rect.centery += self.y_speed
-
         # Destroys sprite when outside screen
         if self.rect.centery >= 800:
             self.kill()
 
 
-spaceship = SpaceShip('./assets/spaceship.png', 640, 500, 10)  # spaceship image and starting location
+class Laser(pygame.sprite.Sprite):
+    def __init__(self, path, pos, speed):
+        super(Laser, self).__init__()
+        self.image = pygame.image.load(path)  # Creates surface
+        self.rect = self.image.get_rect(center=pos)  # Creates rectangle
+        self.speed = speed
+
+    def update(self):
+        self.rect.centery -= self.speed
+        if self.rect.centery <= -100:
+            self.kill()
+
+
+spaceship = SpaceShip('./assets/spaceship.png', 640, 500)  # spaceship image and starting location
 spaceship_group = pygame.sprite.GroupSingle()
 spaceship_group.add(spaceship)
 
@@ -56,11 +68,14 @@ meteor_group = pygame.sprite.Group()
 METEOR_EVENT = pygame.USEREVENT
 pygame.time.set_timer(METEOR_EVENT, 200)
 
+laser_group = pygame.sprite.Group()
+
 while True:  # MAIN GAME LOOP
     for event in pygame.event.get():  # Checks for EVENTS / PLAYER INPUT
         if event.type == pygame.QUIT:  # Close the game
             pygame.quit()
             sys.exit()
+
         if event.type == METEOR_EVENT:
             meteor_path = random.choice(('./assets/Meteor1.png', './assets/Meteor2.png', './assets/Meteor3.png'))
             random_x_pos = random.randrange(0, 1280)
@@ -70,10 +85,19 @@ while True:  # MAIN GAME LOOP
             meteor = Meteor(meteor_path, random_x_pos, random_y_pos, random_x_speed, random_y_speed)
             meteor_group.add(meteor)
 
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            new_laser = Laser('./assets/Laser.png', event.pos, 7)
+            laser_group.add(new_laser)
+
     screen.fill((42, 55, 65))  # colors the background of screen
+
+    laser_group.draw(screen)
     meteor_group.draw(screen)
     spaceship_group.draw(screen)  # draws image on screen
+
+    laser_group.update()
     spaceship_group.update()  # Updates sprites
     meteor_group.update()
     pygame.display.update()  # Draw frames
+
     clock.tick(140)  # Control the framerate
