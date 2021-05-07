@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 
 pygame.init()  # Initiate pygame
 screen = pygame.display.set_mode((1280, 720))  # Set display surface & size
@@ -34,25 +35,45 @@ class Meteor(pygame.sprite.Sprite):
         super(Meteor, self).__init__()
         self.image = pygame.image.load(path)
         self.rect = self.image.get_rect(center=(x_pos, y_pos))
+        self.y_speed = y_speed
+        self.x_speed = x_speed
+
+    def update(self):  # continuous movement of meteor
+        self.rect.centerx += self.x_speed
+        self.rect.centery += self.y_speed
+
+        # Destroys sprite when outside screen
+        if self.rect.centery >= 800:
+            self.kill()
 
 
 spaceship = SpaceShip('./assets/spaceship.png', 640, 500, 10)  # spaceship image and starting location
 spaceship_group = pygame.sprite.GroupSingle()
 spaceship_group.add(spaceship)
 
-meteor1 = Meteor('./assets/Meteor1.png', 640, 200, 1, 1)  # meteor image
 meteor_group = pygame.sprite.Group()
-meteor_group.add(meteor1)
+
+METEOR_EVENT = pygame.USEREVENT
+pygame.time.set_timer(METEOR_EVENT, 200)
 
 while True:  # MAIN GAME LOOP
     for event in pygame.event.get():  # Checks for EVENTS / PLAYER INPUT
         if event.type == pygame.QUIT:  # Close the game
             pygame.quit()
             sys.exit()
+        if event.type == METEOR_EVENT:
+            meteor_path = random.choice(('./assets/Meteor1.png', './assets/Meteor2.png', './assets/Meteor3.png'))
+            random_x_pos = random.randrange(0, 1280)
+            random_y_pos = random.randrange(-500, -100)
+            random_y_speed = random.randrange(2, 8)
+            random_x_speed = random.randrange(-1, 1)
+            meteor = Meteor(meteor_path, random_x_pos, random_y_pos, random_x_speed, random_y_speed)
+            meteor_group.add(meteor)
 
     screen.fill((42, 55, 65))  # colors the background of screen
     meteor_group.draw(screen)
     spaceship_group.draw(screen)  # draws image on screen
     spaceship_group.update()  # Updates sprites
+    meteor_group.update()
     pygame.display.update()  # Draw frames
     clock.tick(140)  # Control the framerate
