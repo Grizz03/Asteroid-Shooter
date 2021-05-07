@@ -12,11 +12,14 @@ class SpaceShip(pygame.sprite.Sprite):
         super(SpaceShip, self).__init__()
         self.image = pygame.image.load(path)  # Creates surface
         self.rect = self.image.get_rect(center=(x_pos, y_pos))  # Creates rectangle
+        self.shield_surface = pygame.image.load('./assets/shield.png')
+        self.health = 5
 
     #  Movements of ship
     def update(self):
         self.rect.center = pygame.mouse.get_pos()  # Centers mouse in center of rectangle of spaceship
         self.screen_constraints()
+        self.display_health()
 
     #  Constraints of spaceship on x-axis
     def screen_constraints(self):
@@ -28,6 +31,14 @@ class SpaceShip(pygame.sprite.Sprite):
             self.rect.bottom = 720
         if self.rect.top <= 0:
             self.rect.top = 0
+
+    # Displaying shield/health
+    def display_health(self):
+        for index, shield in enumerate(range(self.health)):
+            screen.blit(self.shield_surface, (10 + index * 40, 10))
+
+    def get_damage(self, damage_amount):
+        self.health -= damage_amount
 
 
 class Meteor(pygame.sprite.Sprite):
@@ -76,6 +87,7 @@ while True:  # MAIN GAME LOOP
             pygame.quit()
             sys.exit()
 
+        # Meteor Loop
         if event.type == METEOR_EVENT:
             meteor_path = random.choice(('./assets/Meteor1.png', './assets/Meteor2.png', './assets/Meteor3.png'))
             random_x_pos = random.randrange(0, 1280)
@@ -85,9 +97,17 @@ while True:  # MAIN GAME LOOP
             meteor = Meteor(meteor_path, random_x_pos, random_y_pos, random_x_speed, random_y_speed)
             meteor_group.add(meteor)
 
+        # Laser Loop
         if event.type == pygame.MOUSEBUTTONDOWN:
             new_laser = Laser('./assets/Laser.png', event.pos, 7)
             laser_group.add(new_laser)
+
+        # Collisions
+        if pygame.sprite.spritecollide(spaceship_group.sprite, meteor_group, True):
+            spaceship_group.sprite.get_damage(1)
+
+        for laser in laser_group:
+            pygame.sprite.spritecollide(laser, meteor_group, True)
 
     screen.fill((42, 55, 65))  # colors the background of screen
 
