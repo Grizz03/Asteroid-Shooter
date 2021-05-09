@@ -21,7 +21,7 @@ class SpaceShip(pygame.sprite.Sprite):
         self.screen_constraints()
         self.display_health()
 
-    #  Constraints of spaceship on x-axis
+    #  Constraints of spaceship on x-axis and y-axis
     def screen_constraints(self):
         if self.rect.right >= 1280:
             self.rect.right = 1280
